@@ -28,8 +28,12 @@ router.post('/analyze', auth, async (req, res) => {
     const result = await parseFood(text.trim());
     res.json(result);
   } catch (err) {
-    console.error('Gemini error:', err.message);
-    res.status(500).json({ message: 'AI analysis failed. Please try again.' });
+    console.error('Gemini error details:', err.response?.data || err.message);
+    res.status(500).json({ 
+      message: 'AI analysis failed. Please try again.',
+      debug: err.message,
+      geminiError: err.response?.data 
+    });
   }
 });
 
