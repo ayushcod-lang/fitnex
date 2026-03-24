@@ -1,4 +1,3 @@
-require('dotenv').config({ path: __dirname + '/vercel.env' });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -20,6 +19,16 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
+
+app.get('/api/ping', (req, res) => res.json({ status: 'pong' }));
+app.get('/api/env-check', (req, res) => {
+  res.json({
+    hasMongo: !!process.env.MONGO_URI,
+    mongoLength: process.env.MONGO_URI?.length || 0,
+    hasGemini: !!process.env.GEMINI_API_KEY,
+    geminiStart: process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.substring(0, 5) + '...' : 'NONE'
+  });
+});
 
 // Serverless MongoDB Connection Middleware
 app.use(async (req, res, next) => {
