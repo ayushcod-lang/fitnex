@@ -29,34 +29,54 @@ Reference values for common Indian foods:
 - 1 chicken breast (150g, grilled): 232 kcal, 43g protein, 0g carbs, 5g fat
 - 1 egg: 78 kcal, 6g protein, 0.6g carbs, 5g fat`;
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 1024,
-        response_mime_type: "application/json",
-      },
+  const models = [
+    'gemini-1.5-flash',
+    'gemini-2.0-flash',
+    'gemini-pro'
+  ];
+
+  let lastError;
+  let parsedResult;
+
+  for (const model of models) {
+    try {
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 1024,
+            response_mime_type: "application/json",
+          },
+        }
+      );
+      
+      const rawText = response.data.candidates[0]?.content?.parts[0]?.text;
+      if (!rawText) continue;
+
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) continue;
+      
+      parsedResult = JSON.parse(jsonMatch[0]);
+      if (parsedResult) break; // Success!
+    } catch (err) {
+      lastError = err.response?.data || err.message;
+      console.error(`Gemini model ${model} failed:`, lastError);
     }
-  );
+  }
 
-  const rawText = response.data.candidates[0]?.content?.parts[0]?.text;
-  if (!rawText) throw new Error('Empty response from Gemini');
-
-  // Extract JSON from response
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Could not parse AI response as JSON');
-
-  const parsed = JSON.parse(jsonMatch[0]);
+  if (!parsedResult) {
+    throw new Error(`All Gemini models failed. Last error: ${JSON.stringify(lastError)}`);
+  }
 
   // Validate and sanitize
   return {
-    calories: Math.round(parsed.calories || 0),
-    protein: Math.round(parsed.protein || 0),
-    carbs: Math.round(parsed.carbs || 0),
-    fats: Math.round(parsed.fats || 0),
-    items: (parsed.items || []).map(item => ({
+    calories: Math.round(parsedResult.calories || 0),
+    protein: Math.round(parsedResult.protein || 0),
+    carbs: Math.round(parsedResult.carbs || 0),
+    fats: Math.round(parsedResult.fats || 0),
+    items: (parsedResult.items || []).map(item => ({
       name: item.name || 'Unknown',
       calories: Math.round(item.calories || 0),
       protein: Math.round(item.protein || 0),
