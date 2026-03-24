@@ -1,11 +1,19 @@
-const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const parseFood = async (text) => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    }
+  });
+
   const prompt = `You are a precise nutrition expert specializing in Indian and international cuisine. Analyze this meal description and estimate nutritional content.
 
 Meal: "${text}"
 
-Respond ONLY with valid JSON, no markdown, no explanation:
+Respond with valid JSON:
 {
   "calories": <total as integer>,
   "protein": <grams as integer>,
@@ -29,54 +37,19 @@ Reference values for common Indian foods:
 - 1 chicken breast (150g, grilled): 232 kcal, 43g protein, 0g carbs, 5g fat
 - 1 egg: 78 kcal, 6g protein, 0.6g carbs, 5g fat`;
 
-  const models = [
-    'gemini-1.5-flash',
-    'gemini-2.0-flash',
-    'gemini-pro'
-  ];
-
-  let lastError;
-  let parsedResult;
-
-  for (const model of models) {
-    try {
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 1024,
-            response_mime_type: "application/json",
-          },
-        }
-      );
-      
-      const rawText = response.data.candidates[0]?.content?.parts[0]?.text;
-      if (!rawText) continue;
-
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) continue;
-      
-      parsedResult = JSON.parse(jsonMatch[0]);
-      if (parsedResult) break; // Success!
-    } catch (err) {
-      lastError = err.response?.data || err.message;
-      console.error(`Gemini model ${model} failed:`, lastError);
-    }
-  }
-
-  if (!parsedResult) {
-    throw new Error(`All Gemini models failed. Last error: ${JSON.stringify(lastError)}`);
-  }
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const rawText = response.text();
+  
+  const parsed = JSON.parse(rawText);
 
   // Validate and sanitize
   return {
-    calories: Math.round(parsedResult.calories || 0),
-    protein: Math.round(parsedResult.protein || 0),
-    carbs: Math.round(parsedResult.carbs || 0),
-    fats: Math.round(parsedResult.fats || 0),
-    items: (parsedResult.items || []).map(item => ({
+    calories: Math.round(parsed.calories || 0),
+    protein: Math.round(parsed.protein || 0),
+    carbs: Math.round(parsed.carbs || 0),
+    fats: Math.round(parsed.fats || 0),
+    items: (parsed.items || []).map(item => ({
       name: item.name || 'Unknown',
       calories: Math.round(item.calories || 0),
       protein: Math.round(item.protein || 0),

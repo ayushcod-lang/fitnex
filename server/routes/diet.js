@@ -2,6 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const FoodLog = require('../models/FoodLog');
 const { parseFood } = require('../services/gemini');
+const { parseFoodWithGroq } = require('../services/groq');
 
 const router = express.Router();
 
@@ -25,14 +26,38 @@ router.post('/analyze', auth, async (req, res) => {
     if (!text || text.trim().length < 2) {
       return res.status(400).json({ message: 'Please describe your meal' });
     }
-    const result = await parseFood(text.trim());
+
+    let result;
+    let geminiError;
+
+    // Try Gemini First
+    try {
+      result = await parseFood(text.trim());
+    } catch (err) {
+      geminiError = err.message;
+      console.error('Gemini primary failed, trying Groq fallback...', geminiError);
+    }
+
+    // Fallback to Groq if Gemini fails
+    if (!result && process.env.GROQ_API_KEY) {
+      try {
+        result = await parseFoodWithGroq(text.trim());
+        console.log('✅ Groq fallback success');
+      } catch (err) {
+        console.error('Groq fallback failed:', err.message);
+      }
+    }
+
+    if (!result) {
+      throw new Error(geminiError || 'AI analysis failed on all providers');
+    }
+
     res.json(result);
   } catch (err) {
-    console.error('Gemini error details:', err.response?.data || err.message);
+    console.error('Final Analysis error:', err.message);
     res.status(500).json({ 
       message: 'AI analysis failed. Please try again.',
-      debug: err.message,
-      geminiError: err.response?.data 
+      debug: err.message
     });
   }
 });
