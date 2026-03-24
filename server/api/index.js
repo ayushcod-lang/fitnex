@@ -3,11 +3,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/profile');
-const workoutRoutes = require('./routes/workouts');
-const dietRoutes = require('./routes/diet');
-const progressRoutes = require('./routes/progress');
+const authRoutes = require('../routes/auth');
+const profileRoutes = require('../routes/profile');
+const workoutRoutes = require('../routes/workouts');
+const dietRoutes = require('../routes/diet');
+const progressRoutes = require('../routes/progress');
 
 const app = express();
 
