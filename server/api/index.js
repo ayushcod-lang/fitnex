@@ -1,51 +1,14 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const authRoutes = require('../routes/auth');
-const profileRoutes = require('../routes/profile');
-const workoutRoutes = require('../routes/workouts');
-const dietRoutes = require('../routes/diet');
-const progressRoutes = require('../routes/progress');
-
-const app = express();
-
-const allowedOrigins = (process.env.CLIENT_URL || '*').split(',');
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
-app.use(express.json({ limit: '10mb' }));
-
-// Serverless MongoDB Connection Middleware
-app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState === 1) {
-    return next();
-  }
+app.get('/api/debug-models', async (req, res) => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    console.log('✅ MongoDB connected');
-    next();
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const result = await genAI.listModels();
+    res.json({ models: result.models });
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
-    res.status(500).json({ message: 'Database connection failed', error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
-
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date(), dbState: mongoose.connection.readyState }));
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/workouts', workoutRoutes);
-app.use('/api/diet', dietRoutes);
-app.use('/api/progress', progressRoutes);
 
 app.get('/api/env-check', (req, res) => {
   const keys = Object.keys(process.env).filter(key => 
