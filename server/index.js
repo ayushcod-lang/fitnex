@@ -48,6 +48,16 @@ app.use('/api/workouts', workoutRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/progress', progressRoutes);
 
+app.get('/api/env-check', (req, res) => {
+  const keys = Object.keys(process.env).filter(key => 
+    key.startsWith('MONGO') || 
+    key.startsWith('GEMINI') || 
+    key.startsWith('FIREBASE') || 
+    key.startsWith('JWT')
+  );
+  res.json({ keys });
+});
+
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
