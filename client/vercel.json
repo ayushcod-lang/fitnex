@@ -1,0 +1,20 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://server-ruddy-seven.vercel.app",
+      "VITE_FIREBASE_API_KEY": "AIzaSyBn7J9y09GXtsCj_KKnKgcmvRd5wOCM9Qk",
+      "VITE_FIREBASE_AUTH_DOMAIN": "fitnex-4b71d.firebaseapp.com",
+      "VITE_FIREBASE_PROJECT_ID": "fitnex-4b71d",
+      "VITE_FIREBASE_STORAGE_BUCKET": "fitnex-4b71d.firebasestorage.app",
+      "VITE_FIREBASE_MESSAGING_SENDER_ID": "608659852923",
+      "VITE_FIREBASE_APP_ID": "1:608659852923:web:aab2140004ab78a44ddcde",
+      "VITE_FIREBASE_MEASUREMENT_ID": "G-G4TEB3K98K"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

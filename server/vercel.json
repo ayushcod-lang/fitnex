@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "env": {
+    "MONGO_URI": "mongodb+srv://narutoxuzumaki016_db_user:ZdwqqjpEOeJAwtQ1@cluster0.gxc47iu.mongodb.net/fitnex?retryWrites=true&w=majority",
+    "GEMINI_API_KEY": "AIzaSyDPutjFbIFKpXgQYdU7fg6_COPrfoTnxyM",
+    "FIREBASE_API_KEY": "AIzaSyBn7J9y09GXtsCj_KKnKgcmvRd5wOCM9Qk",
+    "FIREBASE_PROJECT_ID": "fitnex-4b71d",
+    "JWT_SECRET": "fitnex_super_secret_jwt_key_2024_change_in_production",
+    "CLIENT_URL": "*"
+  },
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ]
+}

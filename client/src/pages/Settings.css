@@ -1,0 +1,15 @@
+.settings-section { margin-bottom: 20px; }
+.settings-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.settings-section-header .card-title { margin-bottom: 0; }
+.active-toggle { background: var(--accent-dim) !important; color: var(--accent) !important; }
+.auto-targets-info p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+.auto-targets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.auto-target { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-md); }
+.auto-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.auto-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+.accent-blue { color: var(--protein) !important; }
+.accent-orange { color: var(--carbs) !important; }
+.accent-purple { color: var(--fats) !important; }
+.settings-actions { display: flex; gap: 12px; margin-top: 8px; }
+.settings-actions .btn-primary { flex: 1; }
+@media (max-width: 480px) { .auto-targets-grid { grid-template-columns: repeat(2, 1fr); } .settings-actions { flex-direction: column; } }
