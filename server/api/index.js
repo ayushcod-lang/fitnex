@@ -33,10 +33,10 @@ app.get('/api/debug-models', async (req, res) => {
 });
 
 app.get('/api/env-check', (req, res) => {
-  const keys = Object.keys(process.env).filter(key => 
-    key.startsWith('MONGO') || 
-    key.startsWith('GEMINI') || 
-    key.startsWith('FIREBASE') || 
+  const keys = Object.keys(process.env).filter(key =>
+    key.startsWith('MONGO') ||
+    key.startsWith('GEMINI') ||
+    key.startsWith('FIREBASE') ||
     key.startsWith('JWT')
   );
   res.json({ keys });
