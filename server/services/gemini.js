@@ -43,7 +43,8 @@ Reference values:
         generationConfig: {
           responseMimeType: "application/json",
           temperature: 0.1,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 },
         }
       });
 
