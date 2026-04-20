@@ -26,4 +26,63 @@
 .exercise-suggestion { padding: 8px 14px; font-size: 13px; }
 .pr-alert { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), #00CC6A); color: var(--bg-primary); font-weight: 700; font-size: 15px; border-radius: var(--radius-md); box-shadow: 0 8px 32px rgba(0, 255, 135, 0.4); animation: slideUp 0.3s ease; }
 .pr-alert-icon { font-size: 24px; }
+
+/* ---- Start Session Button ---- */
+.session-start-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(0, 212, 255, 0.08));
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.session-start-btn:hover {
+  border-color: var(--accent-purple);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(0, 212, 255, 0.12));
+  box-shadow: 0 4px 20px rgba(167, 139, 250, 0.2);
+  transform: translateY(-2px);
+}
+
+.session-start-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.session-start-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.session-start-text strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.session-start-text small {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.session-start-arrow {
+  font-size: 20px;
+  color: var(--accent-purple);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.session-start-btn:hover .session-start-arrow {
+  transform: translateX(4px);
+}
+
 @media (max-width: 768px) { .sets-header, .set-row { grid-template-columns: 30px 1fr 1fr 60px 30px; } .set-input { padding: 6px 8px; font-size: 14px; } }

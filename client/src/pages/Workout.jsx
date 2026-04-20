@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
+import WorkoutSession from '../components/WorkoutSession/WorkoutSession';
 import './Workout.css';
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -21,6 +22,7 @@ const Workout = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [prAlert, setPrAlert] = useState(null);
+  const [sessionMode, setSessionMode] = useState(false); // NEW: session mode toggle
 
   useEffect(() => {
     const fetch = async () => {
@@ -82,15 +84,47 @@ const Workout = () => {
     setExercises(updated); save(updated);
   };
 
+  // Handle session save — merges session data into today's workout
+  const handleSessionSave = async (sessionData) => {
+    const mergedExercises = [...exercises, ...sessionData.exercises];
+    setExercises(mergedExercises);
+    await save(mergedExercises);
+    setSessionMode(false);
+  };
+
   const filteredCommon = COMMON_EXERCISES.filter(e => e.toLowerCase().includes(searchTerm.toLowerCase()) && !exercises.some(ex => ex.name === e));
   const totalVolume = exercises.reduce((total, ex) => total + ex.sets.reduce((s, set) => s + (set.weight * set.reps), 0), 0);
 
   if (loading) return <div className="page-content"><div className="spinner" style={{ margin: '100px auto' }} /></div>;
 
+  // SESSION MODE — render WorkoutSession component
+  if (sessionMode) {
+    return (
+      <div className="page-content">
+        <WorkoutSession
+          onSave={handleSessionSave}
+          onCancel={() => setSessionMode(false)}
+        />
+      </div>
+    );
+  }
+
+  // NORMAL MODE — existing workout page
   return (
     <div className="page-content">
       {prAlert && <div className="pr-alert"><span className="pr-alert-icon">🏆</span><span>NEW PR! {prAlert.exercise}: {prAlert.weight}kg</span></div>}
       <h1 className="page-title">Workout Tracker 💪</h1>
+
+      {/* Start Session Button */}
+      <button className="btn session-start-btn" onClick={() => setSessionMode(true)}>
+        <span className="session-start-icon">🎯</span>
+        <span className="session-start-text">
+          <strong>Start AI Workout Session</strong>
+          <small>Auto-track reps with your camera using AI</small>
+        </span>
+        <span className="session-start-arrow">→</span>
+      </button>
+
       <div className="workout-top-bar">
         <input type="date" className="input date-input" value={date} onChange={e => setDate(e.target.value)} />
         <div className="workout-stats-bar">
