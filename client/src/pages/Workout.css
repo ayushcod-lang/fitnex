@@ -85,4 +85,38 @@
   transform: translateX(4px);
 }
 
+/* ---- Workout Tabs ---- */
+.workout-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.workout-tab {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.workout-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.workout-tab.active {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 @media (max-width: 768px) { .sets-header, .set-row { grid-template-columns: 30px 1fr 1fr 60px 30px; } .set-input { padding: 6px 8px; font-size: 14px; } }

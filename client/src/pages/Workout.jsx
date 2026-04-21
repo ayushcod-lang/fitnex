@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import WorkoutSession from '../components/WorkoutSession/WorkoutSession';
+import WorkoutCalendar from '../components/WorkoutCalendar/WorkoutCalendar';
 import './Workout.css';
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -22,7 +23,8 @@ const Workout = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [prAlert, setPrAlert] = useState(null);
-  const [sessionMode, setSessionMode] = useState(false); // NEW: session mode toggle
+  const [sessionMode, setSessionMode] = useState(false);
+  const [workoutTab, setWorkoutTab] = useState('log'); // 'log' | 'history'
 
   useEffect(() => {
     const fetch = async () => {
@@ -84,11 +86,28 @@ const Workout = () => {
     setExercises(updated); save(updated);
   };
 
-  // Handle session save — merges session data into today's workout
+  // Estimate calories burned from exercises + duration
+  const estimateCalories = (sessionData) => {
+    // MET-based estimation: ~5 MET for weight training
+    const durationMin = (sessionData.duration || 0) / 60;
+    const bodyWeight = 75; // kg default, could come from user profile
+    const metValue = 5;
+    const fromDuration = Math.round((metValue * bodyWeight * durationMin) / 60);
+    // Also factor in volume: ~0.05 cal per kg lifted
+    const totalVolume = sessionData.exercises.reduce((sum, ex) =>
+      sum + ex.sets.reduce((s, set) => s + (set.weight * set.reps), 0), 0);
+    const fromVolume = Math.round(totalVolume * 0.05);
+    return Math.max(fromDuration, fromVolume, Math.round(durationMin * 5)); // at least 5 cal/min
+  };
+
+  // Handle session save — merges session data into today's workout + auto calorie tracking
   const handleSessionSave = async (sessionData) => {
     const mergedExercises = [...exercises, ...sessionData.exercises];
+    const estimatedCals = estimateCalories(sessionData);
+    const totalCals = caloriesBurned + estimatedCals;
     setExercises(mergedExercises);
-    await save(mergedExercises);
+    setCaloriesBurned(totalCals);
+    await save(mergedExercises, totalCals);
     setSessionMode(false);
   };
 
@@ -125,6 +144,20 @@ const Workout = () => {
         <span className="session-start-arrow">→</span>
       </button>
 
+      {/* Tab toggle */}
+      <div className="workout-tabs">
+        <button className={`workout-tab ${workoutTab === 'log' ? 'active' : ''}`} onClick={() => setWorkoutTab('log')}>
+          📝 Log
+        </button>
+        <button className={`workout-tab ${workoutTab === 'history' ? 'active' : ''}`} onClick={() => setWorkoutTab('history')}>
+          📅 History
+        </button>
+      </div>
+
+      {workoutTab === 'history' ? (
+        <WorkoutCalendar />
+      ) : (
+      <>
       <div className="workout-top-bar">
         <input type="date" className="input date-input" value={date} onChange={e => setDate(e.target.value)} />
         <div className="workout-stats-bar">
@@ -173,6 +206,8 @@ const Workout = () => {
           {newExercise.trim() && !filteredCommon.includes(newExercise.trim()) && <button className="btn btn-primary" onClick={() => addExercise(newExercise)} style={{ marginTop: 8 }}>Add "{newExercise.trim()}"</button>}
           <button className="btn btn-ghost" onClick={() => { setShowAdd(false); setSearchTerm(''); setNewExercise(''); }} style={{ marginTop: 8 }}>Cancel</button>
         </div>
+      )}
+      </>
       )}
     </div>
   );

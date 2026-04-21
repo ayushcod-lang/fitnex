@@ -4,6 +4,44 @@ const Workout = require('../models/Workout');
 
 const router = express.Router();
 
+// GET /api/workouts/calendar?month=2026-04 — calendar heatmap data
+router.get('/calendar', auth, async (req, res) => {
+  try {
+    const { month } = req.query; // format: YYYY-MM
+    if (!month) return res.status(400).json({ message: 'month param required (YYYY-MM)' });
+
+    const [year, m] = month.split('-').map(Number);
+    const startDate = `${year}-${String(m).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(m + 1 > 12 ? 1 : m + 1).padStart(2, '0')}-01`;
+    const endYear = m + 1 > 12 ? year + 1 : year;
+    const endDateStr = `${endYear}-${String(m + 1 > 12 ? 1 : m + 1).padStart(2, '0')}-01`;
+
+    const workouts = await Workout.find({
+      userId: req.user.userId,
+      date: { $gte: startDate, $lt: endDateStr },
+    });
+
+    const calendarData = {};
+    workouts.forEach(w => {
+      const volume = w.exercises.reduce((total, ex) =>
+        total + ex.sets.reduce((s, set) => s + (set.weight * set.reps), 0), 0);
+      const exerciseCount = w.exercises.length;
+      const setCount = w.exercises.reduce((s, ex) => s + ex.sets.length, 0);
+      calendarData[w.date] = {
+        volume,
+        exerciseCount,
+        setCount,
+        caloriesBurned: w.caloriesBurned || 0,
+        exercises: w.exercises.map(ex => ex.name),
+      };
+    });
+
+    res.json(calendarData);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET /api/workouts?date=YYYY-MM-DD  (all workouts or filtered by date)
 router.get('/', auth, async (req, res) => {
   try {

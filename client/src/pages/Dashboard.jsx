@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
+import { StreakWidget, AchievementsBadges } from '../components/Streaks/Streaks';
 import './Dashboard.css';
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -60,6 +61,8 @@ const Dashboard = () => {
         </h1>
         <p className="page-subtitle">Here's your fitness snapshot for today</p>
       </div>
+      <StreakWidget />
+      <AchievementsBadges />
       <div className="dashboard-grid">
         <div className="card dashboard-calorie-card">
           <div className="calorie-ring-wrapper">
