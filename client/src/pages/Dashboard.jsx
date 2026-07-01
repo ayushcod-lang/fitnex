@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import { StreakWidget, AchievementsBadges } from '../components/Streaks/Streaks';
+import SmartInsights from '../components/SmartInsights/SmartInsights';
 import './Dashboard.css';
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -101,7 +102,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="card dashboard-workout-card">
-          <h3 className="card-title">Today's Workout 💪</h3>
+          <h3 className="card-title">Today's Workout</h3>
           {exerciseCount > 0 ? (
             <>
               <div className="workout-quick-stats">
@@ -123,16 +124,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <div className="card dashboard-balance-card">
-          <h3 className="card-title">Calorie Balance</h3>
-          <div className="balance-visual">
-            <div className="balance-item"><span className="balance-emoji">🍎</span><span className="balance-value eaten">{caloriesConsumed}</span><span className="balance-label">Eaten</span></div>
-            <span className="balance-operator">−</span>
-            <div className="balance-item"><span className="balance-emoji">🔥</span><span className="balance-value burned">{caloriesBurned}</span><span className="balance-label">Burned</span></div>
-            <span className="balance-operator">=</span>
-            <div className="balance-item"><span className="balance-emoji">⚡</span><span className={`balance-value ${netCalories > calorieTarget ? 'over' : 'net'}`}>{netCalories}</span><span className="balance-label">Net</span></div>
-          </div>
-        </div>
+        <SmartInsights />
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import { extractFeatures, FeatureBuffer } from './featureExtractor';
 import { initFormClassifier, classify, disposeFormClassifier } from './formClassifier';
 import { RepCounter } from './repCounter';
 import { KEYPOINTS } from './exerciseConfig';
+import { voiceCoach } from './voiceCoach';
 import './PoseTracker.css';
 
 // Skeleton connections for drawing
@@ -45,12 +46,14 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
   const [repData, setRepData] = useState({ repCount: 0, formScore: 100, cue: null, state: 'IDLE', angle: 0 });
   const [visibility, setVisibility] = useState(0);
   const [error, setError] = useState(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const prevStateRef = useRef('IDLE');
   const [elapsedTime, setElapsedTime] = useState(0);
 
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // ---- Initialize camera + ML models ----
+// Initialize camera + ML models
   useEffect(() => {
     let cancelled = false;
 
@@ -102,7 +105,7 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     };
   }, [exerciseName]);
 
-  // ---- Countdown timer ----
+// Countdown timer
   useEffect(() => {
     if (status !== 'countdown') return;
 
@@ -116,7 +119,7 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     return () => clearTimeout(timer);
   }, [status, countdown]);
 
-  // ---- Elapsed time tracker ----
+// Elapsed time tracker
   useEffect(() => {
     if (status !== 'tracking') return;
 
@@ -127,7 +130,7 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     return () => clearInterval(timerRef.current);
   }, [status]);
 
-  // ---- Main tracking loop ----
+// Main tracking loop
   useEffect(() => {
     if (status !== 'tracking') return;
 
@@ -158,6 +161,14 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
         const state = repCounterRef.current.update(keypoints, classifierOutput);
         setRepData({ ...state });
 
+        // Voice coaching announcements
+        if (voiceEnabled) {
+          voiceCoach.announceRep(state.repCount);
+          if (state.cue) voiceCoach.announceCue(state.cue);
+          voiceCoach.announcePhase(state.state, prevStateRef.current);
+          prevStateRef.current = state.state;
+        }
+
         // Draw skeleton on canvas
         drawSkeleton(keypoints, state);
       }
@@ -173,7 +184,7 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     };
   }, [status]);
 
-  // ---- Draw skeleton ----
+// Draw skeleton
   const drawSkeleton = useCallback((keypoints, state) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -234,23 +245,36 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     }
   }, []);
 
-  // ---- Cleanup ----
+// Toggle voice coaching
+  const toggleVoice = () => {
+    const newVal = !voiceEnabled;
+    setVoiceEnabled(newVal);
+    voiceCoach.setEnabled(newVal);
+    if (newVal && status === 'tracking') {
+      voiceCoach.announceStart(exerciseName);
+    }
+  };
+
+// Cleanup
   const cleanup = () => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
+    voiceCoach.reset();
+    voiceCoach.setEnabled(false);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
   };
 
-  // ---- Stop tracking ----
+// Stop tracking
   const handleStop = () => {
+    if (voiceEnabled) voiceCoach.announceEnd(repData.repCount);
     cleanup();
     setStatus('done');
   };
 
-  // ---- Complete and return data ----
+// Complete and return data
   const handleComplete = () => {
     const data = {
       reps: repData.repCount,
@@ -266,14 +290,14 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
     onComplete(data);
   };
 
-  // ---- Format time ----
+// Format time
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  // ---- Error state ----
+// Error state
   if (error) {
     return (
       <div className="pose-tracker-modal">
@@ -379,6 +403,15 @@ const PoseTracker = ({ exerciseName, onComplete, onClose }) => {
             <div className="pose-angle-debug">
               {repData.angle}°
             </div>
+
+            {/* Voice coaching toggle */}
+            <button
+              className={`btn pose-voice-btn ${voiceEnabled ? 'voice-on' : 'voice-off'}`}
+              onClick={toggleVoice}
+              title={voiceEnabled ? 'Disable voice coaching' : 'Enable voice coaching'}
+            >
+              {voiceEnabled ? '🔊 Voice ON' : '🔇 Voice OFF'}
+            </button>
 
             {/* Stop button */}
             <button className="btn pose-stop-btn" onClick={handleStop}>

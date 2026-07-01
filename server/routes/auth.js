@@ -68,7 +68,7 @@ router.post('/google', async (req, res) => {
     });
   } catch (err) {
     console.error('Auth error:', err.response?.data || err.message);
-    res.status(401).json({ message: 'Authentication failed', debug: err.message, firebaseDebug: err.response?.data });
+    res.status(401).json({ message: 'Authentication failed' });
   }
 });
 

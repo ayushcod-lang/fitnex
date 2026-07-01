@@ -72,7 +72,7 @@ export function extractFeatures(keypoints) {
 
   const features = [];
 
-  // ---- 1. Normalized joint coordinates (26 values) ----
+// 1. Normalized joint coordinates (26 values)
   // Center on mid-hip and scale by torso length
   const midHipX = (keypoints[KEYPOINTS.LEFT_HIP].x + keypoints[KEYPOINTS.RIGHT_HIP].x) / 2;
   const midHipY = (keypoints[KEYPOINTS.LEFT_HIP].y + keypoints[KEYPOINTS.RIGHT_HIP].y) / 2;
@@ -90,16 +90,16 @@ export function extractFeatures(keypoints) {
     features.push((kp.y - midHipY) / scale);
   }
 
-  // ---- 2. Joint angles (10 values) ----
+// 2. Joint angles (10 values)
   for (const [aIdx, bIdx, cIdx] of ANGLE_DEFINITIONS) {
     const angle = computeAngle(keypoints[aIdx], keypoints[bIdx], keypoints[cIdx]);
     features.push(angle / 180); // normalize to [0, 1]
   }
 
-  // ---- 3. Torso-normalized scale (1 value) ----
+// 3. Torso-normalized scale (1 value)
   features.push(scale);
 
-  // ---- 4. Confidence scores (4 values) ----
+// 4. Confidence scores (4 values)
   for (const idx of CONFIDENCE_INDICES) {
     features.push(keypoints[idx].score || 0);
   }

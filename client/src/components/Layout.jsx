@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AICoach from './AICoach/AICoach';
 import './Layout.css';
 
 const navItems = [
@@ -53,6 +54,7 @@ const Layout = ({ children }) => {
           </NavLink>
         ))}
       </nav>
+      <AICoach />
     </div>
   );
 };

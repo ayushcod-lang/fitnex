@@ -12,24 +12,30 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('fitnex_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  // Security: always start null — never trust localStorage as auth state.
+  // Firebase onAuthStateChanged is the single source of truth.
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setAuthError(null);
       if (firebaseUser) {
         try {
-          const idToken = await firebaseUser.getIdToken();
+          // Always get a fresh token — Firebase auto-refreshes it
+          const idToken = await firebaseUser.getIdToken(true);
           const { data } = await api.post('/api/auth/google', { idToken });
           localStorage.setItem('fitnex_token', data.token);
           localStorage.setItem('fitnex_user', JSON.stringify(data.user));
           setUser(data.user);
         } catch (err) {
           console.error('Backend auth failed:', err.message);
+          // Clear everything on backend failure — don't leave stale state
+          localStorage.removeItem('fitnex_token');
+          localStorage.removeItem('fitnex_user');
           setUser(null);
+          setAuthError('Sign-in failed. Please try again.');
         }
       } else {
         localStorage.removeItem('fitnex_token');
@@ -42,10 +48,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async () => {
+    setAuthError(null);
     try {
       await signInWithGoogle();
+      // onAuthStateChanged handles everything after this —
+      // do NOT setUser here, that creates a race condition
     } catch (err) {
       console.error('Login failed:', err.message);
+      setAuthError('Google sign-in was cancelled or failed.');
       throw err;
     }
   };
@@ -64,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, authError, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

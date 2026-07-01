@@ -57,7 +57,7 @@ export class RepCounter {
 
     const { DOWN_THRESHOLD, UP_THRESHOLD } = this.config.phases;
 
-    // ---- State machine transitions ----
+// State machine transitions
     // Each state gets its own case to avoid fall-through bugs
     const prevState = this.state;
 
@@ -124,7 +124,7 @@ export class RepCounter {
       this._lastLogTime = Date.now();
     }
 
-    // ---- Form checks ----
+// Form checks
     this.formIssues = [];
     const now = Date.now();
 
